@@ -1,162 +1,194 @@
-from time import sleep
+import random
+import time
 
-requests = []
+# -----------------------------ФУНКЦИИ-----------------------------
 
-# -------------------------------------------UI--------------------------------------------
-def menu_rendering():
-	print("\n           📊 Анализатор логов\n")
-	print('''1. Вывести всю активность\n2. Все запросы (Успешные/Перенаправления/Ошибки)\n3. Фильтрация по колонкам\n0. Закрыть''')
-	print("------------------------")
+# Интерфейс стартового меню
+def start_menu():
+    print(f"1. Начать игру") # Начать игру
+    print(f"0. Выход") # Выйти из игры
+    print(f"------------------") # Пунктирная линия для UI
 
-	global start_menu
+# Визуализация поля игры
+def display_field(game_field):
+    
+    row_num = 0 # Счётчик строк
+    
+    for row in game_field: # Вывод полей
+        row_num += 1
+        print(f"{row_num}.", *row)
+    print('----------------------------------------')
 
-	start_menu = int(input("Выберите пункт меню: "))
+# Обработка выбранного поля игроком/ботом
+def hero_choice(game_field, move, hero, is_bot_move=False):
+    found_field = 0 # Номер найденного поля (по умолчанию 0)
 
-def rendering_table_of_ip():
-	print('---------------------------------------------------------')
-	print(f'''ID | IP           | METHOD | PATH      | STATUS''')
-	print('---------------------------------------------------------')
-# -----------------------------------------------------------------------------------------
+    # if is_win_check(game_field):
+    for i in range(0, len(game_field)):
+        for j in range(0, len(game_field)):
+            found_field += 1
+            
+            if found_field == move and game_field[i][j] == '-':
+                game_field[i][j] = hero
+                return True
+            elif found_field == move and game_field[i][j] != '-' and is_bot_move:
+                # print("Бот сделал ход на занятое поле!")
+                return False
+            elif found_field == move and game_field[i][j] != '-':
+                print("Игрок, ты выбрал занятое поле!")
+                return False
+        
+        if found_field == move:
+                break
+    # else:
+    #     return True
 
-# ----------------------------------------FUNCTIONS----------------------------------------
-def load_logs():
-	request_id = 0
+# Визуализация ПОБЕДЫ Игрока <hero>
+def display_winner(game_field, hero):
+    print('-------------------WIN------------------')
 
-	with open('log.txt') as file:
-		for line in file.readlines():
-			line = line.strip().split()
-			request_id += 1
-			requests.append(dict(ID=request_id, ip=line[0], method=line[1], path=line[2], status=int(line[3])))
+    time.sleep(0.5)
 
-def get_unique_ips():
-	unique_ips = {data['ip'] for data in requests}
+    print(f'🏆 Победил {hero}')
 
-	return unique_ips
+    time.sleep(0.5)
+    
+    display_field(game_field)
 
-def get_ips_only():
-	print('-----------------')
-	print('ID | IP |')
-	print('-----------------')
-	
-	request_id = 0
+# Функция сканирования поля
+def is_win_check(game_field):
+    
+    n = len(game_field)
 
-	for ip in get_unique_ips():
-		request_id += 1
-		print(f'{str(request_id).ljust(2)} | {ip}')
-		sleep(0.5)
+    total_line = [1 for i in range(0, n) if '-' in game_field[i]] # Счётчик пустых полей
 
-def show_all_logs():
-	rendering_table_of_ip()
+    if 3 in [game_field[i].count('X') for i in range(0, n)]:
+        display_winner(game_field, 'Крестик')
+        return False
+    elif 3 in [game_field[i].count('O') for i in range(0, n)]:
+        display_winner(game_field, 'Нолик')
+        return False
+    else:
+        total_x = []
+        total_o = []
 
-	for data in requests:
-		print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
-		sleep(0.5)
-	print('---------------------------------------------------------')
-	sleep(1)
-	input("Нажмите Enter, чтобы продолжить...")
+        # Парсинг элементов столбцов (Вертикальные победные комбинации)
+        for i in range(0, n):
+            for j in range(0, n):
+                if game_field[j][i] == 'X':
+                    total_x.append(1)
+                elif game_field[j][i] == 'O':
+                    total_o.append(1)
 
-def show_status_stats():
-	succs_request = 0
-	refer_request = 0
-	err_request = 0
+            if sum(total_x) == 3:
+                display_winner(game_field, 'Крестик')
 
-	for data in requests:
-		if data['status'] // 100 == 2:
-			succs_request += 1
-		elif data['status'] // 100 == 3:
-			refer_request += 1
-		elif data['status'] // 100 == 4 or data['status'] // 100 == 5:
-			err_request += 1
+                return False
+            elif sum(total_o) == 3:
+                display_winner(game_field, 'Нолик')
 
-	sleep(1)
-	print('------------------------')
-	print(f'Успешных: {succs_request}, Перенаправлений: {refer_request}, Ошибок: {err_request}')
-	print('------------------------')
-	sleep(1)
-	input("Нажмите Enter, чтобы продолжить...")
+                return False
+            
+            else:
+                total_x = []
+                total_o = []
 
-def get_one_ip_stats():
-	get_ips_only()
+        # Парсинг элементов по диагонали (Главной и Побочной)
+        for i in range(0, n):
+            if game_field[i][i] == 'X' or game_field[i][n-i-1] == 'X': # Главная/Побочная диагональ
+                total_x.append(1)
+            if game_field[i][i] == 'O' or game_field[i][n-i-1] == 'O': # Главная/Побочная диагональ
+                total_o.append(1)
 
-	select_ip = int(input("Выберите IP адрес для фильтрации: "))
+        if sum(total_x) == 3:
+            display_winner(game_field, 'Крестик')
+            return False
+        
+        elif sum(total_o) == 3:
+            display_winner(game_field, 'Нолик')
+            return False
+        
+        else:
+            total_x = []
+            total_o = []
+        
+    # Если пустых полей нет, то конец игры
+    if sum(total_line) == 0:
+        display_field(game_field)
+        print('Игра кончилась.')
+        return False
+    # Иначе игра продолжается
+    else:
+        return True
+    
+# ---------------------------------------------------------------------------------------
+         
+# --------------------------------------НАЧАЛО ИГРЫ--------------------------------------
 
-	request_id = 0
+start_menu() # Стартовое меню
+main_menu = int(input(": ")) # Номер Пункта меню
+while main_menu != 0:
 
-	found_ip = ""
+    field = [
+                ['-', '-', '-',],
+                ['-', '-', '-',],
+                ['-', '-', '-',],
+        ]
 
-	for ip in get_unique_ips():
-		request_id += 1
-		
-		if select_ip == request_id:
-			found_ip = ip
-			break
+    if main_menu == 1:
+        print("1. За крестик")
+        print("2. За нолик")
 
-	if found_ip != "":
-		rendering_table_of_ip()
+        hero_num = int(input("За кого хочешь играть?: "))
 
-		for data in requests:
-			if data["ip"] == found_ip:
-				print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
-				sleep(0.5)
-	else:
-		print("Ошибка! Выберите IP из списка.")
-	print('---------------------------------------------------------')
-	input("Нажмите Enter, чтобы продолжить...")
+        if hero_num == 1:
+            print("Ты выбрал Крестик (Х)")
+            print("Игра началась.")
+            print("----------------------")
 
-def show_top_paths():
-	paths = [data['path'] for data in requests]
+            while is_win_check(field):
+        
+                display_field(field)
+                
+                player_move = int(input("Выбери позицию куда сделать ход (от 1 до 9): "))
+                bot_move = random.randint(1, 9)
 
-	for i in range(0, len(paths) - 1):
-		if paths.count(paths[i]) < paths.count(paths[i + 1]):
-			paths[i], paths[i + 1] = paths[i + 1], paths[i]
+                if player_move > 9 or player_move < 1:
+                    print("Введите число в диапазоне от 1 до 9!")
+                else:
+                    while hero_choice(field, player_move, 'X') == False:
+                        player_move = int(input("Выбери позицию куда сделать ход (от 1 до 9): "))
 
-	paths = sorted(set(paths))
+                    while hero_choice(field, bot_move, 'O', True) == False:
+                        bot_move = random.randint(1, 9)
 
-	print('---------------------------')
-	print('ID |   PATH   | TOTAL_REQUESTS')
-	print('---------------------------')
-	sleep(0.5)
-	
-	path_id = 0
+        elif hero_num == 2:
+            print("Ты выбрал Нолик (O)")
+            print("Игра началась.")
+            print("----------------------")
 
-	for path in paths:
-		path_id += 1
-		print(f"{str(path_id).ljust(2)} | {path.ljust(8)} | {[data['path'] for data in requests].count(path)}")
-		sleep(0.5)
-	print('-----------------')
-	input("Нажмите Enter, чтобы продолжить...")
-# -------------------------------------------------------------------------------------------
+            while is_win_check(field):
 
-# -------------------------------------------------------------------------------------------
-load_logs()
-menu_rendering()
+                display_field(field)
 
-while start_menu != 0:
+                player_move = int(input("Выбери позицию куда сделать ход (от 1 до 9): "))
+                bot_move = random.randint(1, 9)
 
-	# Вывод всей активности (Всего содержимого файла log.txt)
-	if start_menu == 1:
-		show_all_logs()
+                if player_move > 9 or player_move < 1:
+                    print("Введите число в диапазоне от 1 до 9!")
+                else:
+                    while hero_choice(field, player_move, 'O') == False:
+                        player_move = int(input("Выбери позицию куда сделать ход (от 1 до 9): "))
 
-	elif start_menu == 2:
-		show_status_stats()
+                    while hero_choice(field, bot_move, 'X', True) == False:
+                        bot_move = random.randint(1, 9)
+        else:
+            print("Введи цифру 1 или 2")
 
-	# Фильтрация по колонкам
-	elif start_menu == 3:
-		print('------------------------')
-		print('1. Все IP адреса (без повторений)')
-		print('2. Активность конкретного IP (Фильтрация)')
-		print('3. ТОП-страниц по запросам')
-		print('------------------------')
+    start_menu()
+    main_menu = int(input(": "))
 
-		choice = int(input("Выберите опцию: "))
-
-		if choice == 1:
-			get_ips_only()
-
-		elif choice == 2:
-			get_one_ip_stats()
-
-		elif choice == 3:
-			show_top_paths()
-
-	menu_rendering()
+# =========Задачи==========
+# ✅ Удалить баг двойного вывода
+# =========Доработки==========
+# . . .
