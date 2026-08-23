@@ -16,13 +16,24 @@ def rendering_table_of_ip():
 	print('---------------------------------------------------------')
 	print(f'''ID | IP           | METHOD | PATH      | STATUS''')
 	print('---------------------------------------------------------')
-# -----------------------------------------------------------------------------------------
 
 # ----------------------------------------FUNCTIONS----------------------------------------
+
+def msg_void_logs():
+	print('-----------------')
+	print('Логи пустые.')
+	print('-----------------')
+
+def check_void_logs():
+	if requests == []:
+		return False
+	else:
+		return True
+
 def load_logs():
 	request_id = 0
 
-	with open('log.txt') as file:
+	with open('log.txt', 'r') as file:
 		for line in file.readlines():
 			line = line.strip().split()
 			request_id += 1
@@ -34,23 +45,31 @@ def get_unique_ips():
 	return unique_ips
 
 def get_ips_only():
-	print('-----------------')
-	print('ID | IP |')
-	print('-----------------')
-	
-	request_id = 0
 
-	for ip in get_unique_ips():
-		request_id += 1
-		print(f'{str(request_id).ljust(2)} | {ip}')
-		sleep(0.5)
+	if check_void_logs():
+		print('-----------------')
+		print('ID | IP |')
+		print('-----------------')
+		
+		request_id = 0
+
+		for ip in get_unique_ips():
+			request_id += 1
+			print(f'{str(request_id).ljust(2)} | {ip}')
+			sleep(0.5)
+	else:
+		msg_void_logs()
 
 def show_all_logs():
 	rendering_table_of_ip()
 
-	for data in requests:
-		print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
+	if requests == []:
+		print("Ничего не найдено.")
 		sleep(0.5)
+	else:
+		for data in requests:
+			print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
+			sleep(0.5)
 	print('---------------------------------------------------------')
 	sleep(1)
 	input("Нажмите Enter, чтобы продолжить...")
@@ -76,87 +95,111 @@ def show_status_stats():
 	input("Нажмите Enter, чтобы продолжить...")
 
 def get_one_ip_stats():
-	get_ips_only()
 
-	select_ip = int(input("Выберите IP адрес для фильтрации: "))
+	if check_void_logs():
+		get_ips_only()
 
-	request_id = 0
+		select_ip = int(input("Выберите IP адрес для фильтрации: "))
 
-	found_ip = ""
+		request_id = 0
 
-	for ip in get_unique_ips():
-		request_id += 1
-		
-		if select_ip == request_id:
-			found_ip = ip
-			break
+		found_ip = ""
 
-	if found_ip != "":
-		rendering_table_of_ip()
+		for ip in get_unique_ips():
+			request_id += 1
 
-		for data in requests:
-			if data["ip"] == found_ip:
-				print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
-				sleep(0.5)
+			if select_ip == request_id:
+				found_ip = ip
+				break
+
+		if found_ip != "":
+			rendering_table_of_ip()
+
+			for data in requests:
+				if data["ip"] == found_ip:
+					print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
+					sleep(0.5)
+		else:
+			print("Ошибка! Выберите IP из списка.")
+		print('---------------------------------------------------------')
+		input("Нажмите Enter, чтобы продолжить...")
 	else:
-		print("Ошибка! Выберите IP из списка.")
-	print('---------------------------------------------------------')
-	input("Нажмите Enter, чтобы продолжить...")
+		msg_void_logs()
 
 def show_top_paths():
-	paths = [data['path'] for data in requests]
+	if check_void_logs():
 
-	for i in range(0, len(paths) - 1):
-		if paths.count(paths[i]) < paths.count(paths[i + 1]):
-			paths[i], paths[i + 1] = paths[i + 1], paths[i]
+		paths = [data['path'] for data in requests]
 
-	paths = sorted(set(paths))
+		for i in range(0, len(paths) - 1):
+			if paths.count(paths[i]) < paths.count(paths[i + 1]):
+				paths[i], paths[i + 1] = paths[i + 1], paths[i]
 
-	print('---------------------------')
-	print('ID |   PATH   | TOTAL_REQUESTS')
-	print('---------------------------')
-	sleep(0.5)
-	
-	path_id = 0
+		paths = sorted(set(paths))
 
-	for path in paths:
-		path_id += 1
-		print(f"{str(path_id).ljust(2)} | {path.ljust(8)} | {[data['path'] for data in requests].count(path)}")
+		print('------------------------------')
+		print('ID |   PATH   | TOTAL_REQUESTS')
+		print('------------------------------')
 		sleep(0.5)
-	print('-----------------')
-	input("Нажмите Enter, чтобы продолжить...")
-# -------------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------------
-load_logs()
-menu_rendering()
+		path_id = 0
 
-while start_menu != 0:
+		for path in paths:
+			path_id += 1
+			print(f"{str(path_id).ljust(2)} | {path.ljust(8)} | {[data['path'] for data in requests].count(path)}")
+			sleep(0.5)
+		print('-----------------')
+		input("Нажмите Enter, чтобы продолжить...")
+	else:
+		msg_void_logs()
 
-	# Вывод всей активности (Всего содержимого файла log.txt)
-	if start_menu == 1:
-		show_all_logs()
+def filters_only_columns():
+	print('\n---------📖 Фильтрация по колонкам---------')
+	print('1. Все IP адреса (без повторений)')
+	print('2. Активность конкретного IP (Фильтрация)')
+	print('3. ТОП-страниц по запросам')
+	print('------------------------')
 
-	elif start_menu == 2:
-		show_status_stats()
+	choice = int(input("Выберите опцию: "))
 
-	# Фильтрация по колонкам
-	elif start_menu == 3:
-		print('------------------------')
+	filter_menu = {
+		1 : get_ips_only,
+		2 : get_one_ip_stats,
+		3 : show_top_paths,
+	}
+
+	while choice not in filter_menu.keys():
+		print('\nНет такого выбора в меню.\n')
+		print('\n---------📖 Фильтрация по колонкам---------')
 		print('1. Все IP адреса (без повторений)')
 		print('2. Активность конкретного IP (Фильтрация)')
 		print('3. ТОП-страниц по запросам')
 		print('------------------------')
 
 		choice = int(input("Выберите опцию: "))
+	else:
+		filter_menu[choice]()
 
-		if choice == 1:
-			get_ips_only()
+# -------------------------------------------------------------------------------------------
 
-		elif choice == 2:
-			get_one_ip_stats()
+load_logs()
+menu_rendering()
 
-		elif choice == 3:
-			show_top_paths()
+while start_menu != 0:
+
+	menu = {
+		1 : show_all_logs,
+		2 : show_status_stats,
+		3 : filters_only_columns,
+	}
+
+	menu[start_menu]()
 
 	menu_rendering()
+
+# =========Задачи==========
+# . . .
+# o Добавить возможность записи логов вручную (ip, http-метод, путь, статус)
+# . . .
+# =========Доработки=======
+# . . .
