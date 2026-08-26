@@ -5,14 +5,14 @@ requests = []
 # -------------------------------------------UI--------------------------------------------
 def menu_rendering():
 	print("\n           📊 Анализатор логов\n")
-	print('''1. Вывести всю активность\n2. Все запросы (Успешные/Перенаправления/Ошибки)\n3. Фильтрация по колонкам\n0. Закрыть''')
+	print('''1. Вывести всю активность\n2. Все запросы (Успешные/Перенаправления/Ошибки)\n3. Фильтрация по колонкам\n4. Записать лог файл\n0. Закрыть''')
 	print("------------------------")
 
 	global start_menu
 
 	start_menu = int(input("Выберите пункт меню: "))
 
-def rendering_table_of_ip():
+def render_table_of_ip():
 	print('---------------------------------------------------------')
 	print(f'''ID | IP           | METHOD | PATH      | STATUS''')
 	print('---------------------------------------------------------')
@@ -61,7 +61,7 @@ def get_ips_only():
 		msg_void_logs()
 
 def show_all_logs():
-	rendering_table_of_ip()
+	render_table_of_ip()
 
 	if requests == []:
 		print("Ничего не найдено.")
@@ -113,7 +113,7 @@ def get_one_ip_stats():
 				break
 
 		if found_ip != "":
-			rendering_table_of_ip()
+			render_table_of_ip()
 
 			for data in requests:
 				if data["ip"] == found_ip:
@@ -171,9 +171,7 @@ def filters_only_columns():
 	while choice not in filter_menu.keys():
 		print('\nНет такого выбора в меню.\n')
 		print('\n---------📖 Фильтрация по колонкам---------')
-		print('1. Все IP адреса (без повторений)')
-		print('2. Активность конкретного IP (Фильтрация)')
-		print('3. ТОП-страниц по запросам')
+		print('1. Все IP адреса (без повторений)\n2. Активность конкретного IP (Фильтрация)\n3. ТОП-страниц по запросам')
 		print('------------------------')
 
 		choice = int(input("Выберите опцию: "))
@@ -182,6 +180,7 @@ def filters_only_columns():
 
 def write_new_logs():
 	pass
+
 # -------------------------------------------------------------------------------------------
 
 load_logs()
