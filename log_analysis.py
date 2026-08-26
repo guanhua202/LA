@@ -180,6 +180,8 @@ def filters_only_columns():
 	else:
 		filter_menu[choice]()
 
+def write_new_logs():
+	pass
 # -------------------------------------------------------------------------------------------
 
 load_logs()
@@ -191,6 +193,7 @@ while start_menu != 0:
 		1 : show_all_logs,
 		2 : show_status_stats,
 		3 : filters_only_columns,
+		4 : write_new_logs,
 	}
 
 	menu[start_menu]()
