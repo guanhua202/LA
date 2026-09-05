@@ -19,10 +19,12 @@ def render_table_of_ip():
 
 # ----------------------------------------FUNCTIONS----------------------------------------
 
-def msg_void_logs():
-	print('-----------------')
-	print('Логи пустые.')
-	print('-----------------')
+# --------------------------------------SMALL FUNCTIONS----------------------------------
+
+def get_unique_ips():
+	unique_ips = {data['ip'] for data in requests}
+
+	return unique_ips
 
 def check_void_logs():
 	if requests == []:
@@ -30,19 +32,67 @@ def check_void_logs():
 	else:
 		return True
 
-def load_logs():
-	request_id = 0
+def render_msg_void_logs():
+	print('-----------------')
+	print('Логи пустые.')
+	print('-----------------')
 
-	with open('log.txt', 'r') as file:
-		for line in file.readlines():
-			line = line.strip().split()
-			request_id += 1
-			requests.append(dict(ID=request_id, ip=line[0], method=line[1], path=line[2], status=int(line[3])))
+def file_to_dict(file):
+	request_id = len(requests)
 
-def get_unique_ips():
-	unique_ips = {data['ip'] for data in requests}
+	for line in file.readlines():
+		line = line.strip().split()
 
-	return unique_ips
+		if line == []:
+			continue
+		else:
+			line = dict(ID=request_id, ip=line[0], method=line[1], path=line[2], status=int(line[3]))
+
+			if line in requests:
+				continue
+			else:
+				request_id += 1
+				requests.append(line)
+		# ФОРМАТ ЗАПИСИ ЛОГОВ: IP | METHOD | PATH | STATUS
+
+	sleep(0.5)
+	print('----------------------------')
+	print('Логи успешно добавлены. ✅')
+	print('----------------------------')
+	sleep(0.5)
+
+def show_log_menu():
+	
+	def autoload_file():
+		with open(input("Название файла для загрузки: ")) as file:
+			file_to_dict(file)
+
+	def write_log_entry():
+		with open(input("Название нового/старого лог-файла: "), 'a') as file:
+			file.write("\n" + input("\nЗаполните таблицу (IP | METHOD | PATH | STATUS): "))
+
+			sleep(0.5)
+			print('----------------------------')
+			print(f"Данные успешно записаны в файл {file.name} ✅")
+			print('----------------------------')
+			sleep(0.5)
+
+	print('\n------📝 Параметры записи логов-----------')
+	print('1. Загрузить файл')
+	print('2. Создание лог-файла (Не загрузка)')
+	print('----------------------------')
+
+	parametrs = {
+			1 : autoload_file,
+			2 : write_log_entry,
+	}
+
+	param = int(input("Выберите опцию: "))
+
+	parametrs[param]() # Вызов
+# -----------------------------------------------------------------------------------------
+
+# -------------------------------------MAIN FUNCTIONS--------------------------------------
 
 def get_ips_only():
 
@@ -58,7 +108,7 @@ def get_ips_only():
 			print(f'{str(request_id).ljust(2)} | {ip}')
 			sleep(0.5)
 	else:
-		msg_void_logs()
+		render_msg_void_logs()
 
 def show_all_logs():
 	render_table_of_ip()
@@ -100,9 +150,7 @@ def get_one_ip_stats():
 		get_ips_only()
 
 		select_ip = int(input("Выберите IP адрес для фильтрации: "))
-
 		request_id = 0
-
 		found_ip = ""
 
 		for ip in get_unique_ips():
@@ -112,19 +160,19 @@ def get_one_ip_stats():
 				found_ip = ip
 				break
 
-		if found_ip != "":
+		if found_ip == "":
+			print("Ошибка! Выберите IP из списка.")
+		else:
 			render_table_of_ip()
 
 			for data in requests:
 				if data["ip"] == found_ip:
 					print(f"{str(data['ID']).ljust(2)} | {data['ip'].ljust(12)} | {data['method'].ljust(6)} | {data['path'].ljust(9)} | {data['status']}")
 					sleep(0.5)
-		else:
-			print("Ошибка! Выберите IP из списка.")
 		print('---------------------------------------------------------')
 		input("Нажмите Enter, чтобы продолжить...")
 	else:
-		msg_void_logs()
+		render_msg_void_logs()
 
 def show_top_paths():
 	if check_void_logs():
@@ -151,7 +199,7 @@ def show_top_paths():
 		print('-----------------')
 		input("Нажмите Enter, чтобы продолжить...")
 	else:
-		msg_void_logs()
+		render_msg_void_logs()
 
 def filters_only_columns():
 	print('\n---------📖 Фильтрация по колонкам---------')
@@ -178,30 +226,27 @@ def filters_only_columns():
 	else:
 		filter_menu[choice]()
 
-def write_new_logs():
-	pass
-
 # -------------------------------------------------------------------------------------------
 
-load_logs()
+# load_logs()
 menu_rendering()
 
 while start_menu != 0:
 
-	menu = {
+	menu_options = {
 		1 : show_all_logs,
 		2 : show_status_stats,
 		3 : filters_only_columns,
-		4 : write_new_logs,
+		4 : show_log_menu,
 	}
 
-	menu[start_menu]()
+	menu_options[start_menu]()
 
 	menu_rendering()
 
 # =========Задачи==========
 # . . .
-# o Добавить возможность записи логов вручную (ip, http-метод, путь, статус)
+# ✅ Добавить возможность записи логов вручную (ip, http-метод, путь, статус)
 # . . .
 # =========Доработки=======
 # . . .

@@ -1,1 +1,5 @@
-192.168.0.1 get /admin 301
+192.168.1.1 GET /admin 302
+
+94.45.31.4 GET /system32 400
+94.51.32.4 GET /admin 404
+63.41.32.4 POST /kernel 302
