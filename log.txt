@@ -3,3 +3,6 @@
 94.45.31.4 GET /system32 400
 94.51.32.4 GET /admin 404
 63.41.32.4 POST /kernel 302
+78.84.31.23 POST /login 200
+
+0.0.0.0 HOME /altayskaya_11 200

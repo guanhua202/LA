@@ -38,7 +38,7 @@ def render_msg_void_logs():
 	print('-----------------')
 
 def file_to_dict(file):
-	request_id = len(requests)
+	request_id = 1
 
 	for line in file.readlines():
 		line = line.strip().split()
@@ -49,10 +49,13 @@ def file_to_dict(file):
 			line = dict(ID=request_id, ip=line[0], method=line[1], path=line[2], status=int(line[3]))
 
 			if line in requests:
+				request_id += 1
 				continue
 			else:
 				request_id += 1
 				requests.append(line)
+				print('Загрузка...')
+				sleep(0.5)
 		# ФОРМАТ ЗАПИСИ ЛОГОВ: IP | METHOD | PATH | STATUS
 
 	sleep(0.5)
@@ -247,6 +250,6 @@ while start_menu != 0:
 # =========Задачи==========
 # . . .
 # ✅ Добавить возможность записи логов вручную (ip, http-метод, путь, статус)
-# . . .
+# ✅ Не допускать к загрузке точные копии логов (Избавится от клонирования)
 # =========Доработки=======
 # . . .
